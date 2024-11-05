@@ -1,0 +1,25 @@
+packages/core:
+  - changed-files:
+      - any-glob-to-any-file:
+          - packages/arcscord/*
+          - packages/arcscord/**/*
+packages/better-error:
+  - changed-files:
+      - any-glob-to-any-file:
+          - packages/better_error/*
+          - packages/better_error/**/*
+packages/cli:
+  - changed-files:
+      - any-glob-to-any-file:
+          - packages/cli/*
+          - packages/cli/**/*
+packages/error:
+  - changed-files:
+      - any-glob-to-any-file:
+          - packages/error/*
+          - packages/error/**/*
+packages/middleware:
+  - changed-files:
+      - any-glob-to-any-file:
+          - packages/middleware/*
+          - packages/middleware/**/*

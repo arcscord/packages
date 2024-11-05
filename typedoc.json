@@ -1,0 +1,10 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "docs/**"
+  ],
+  "name": "Arcscord",
+  "entryPointStrategy": "merge",
+  "includeVersion": true,
+  "out": "static_docs"
+}
