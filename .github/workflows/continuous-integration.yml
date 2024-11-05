@@ -23,7 +23,7 @@ jobs:
           node-version: 20
           cache: pnpm
       - name: Install Dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Run ESLint
         run: pnpm lint --fix=false
 
@@ -43,7 +43,7 @@ jobs:
           node-version: 20
           cache: pnpm
       - name: Install Dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Build code
         run: pnpm build
       - name: Typecheck code
@@ -63,6 +63,6 @@ jobs:
           node-version: 20
           cache: pnpm
       - name: Install Dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       - name: Run unit tests
         run: pnpm test
