@@ -11,6 +11,8 @@ export class BaseError extends Error {
   name = "baseError";
 
   protected _debugs: Map<string, unknown> = new Map();
+  protected _originalError?: BaseError | Error;
+  protected _id?: string;
 
   /**
    * Creates a new instance of the error class.
@@ -21,29 +23,25 @@ export class BaseError extends Error {
     super(typeof opt === "string" ? opt : opt.message);
 
     if (typeof opt === "object") {
-      if (opt.name) {
-        this.name = opt.name;
-      }
-
+      this.name = opt.name ?? this.name;
       this._originalError = opt.originalError;
-
-      const debugs = opt.debugs;
-      if (debugs) {
-        for (const [key, value] of Object.entries(debugs)) {
-          this._debugs.set(key, value);
-        }
-      }
-
-      if (opt.customId) {
-        this._id = opt.customId;
-      }
-      else if (opt.autoGenerateId) {
-        this.generateId();
-      }
+      this._initializeDebugs(opt.debugs);
+      this._id = opt.customId ?? (opt.autoGenerateId ? this.generateId()._id : undefined);
     }
   }
 
-  protected _originalError?: BaseError | Error;
+  /**
+   * Initializes the debugs map with provided debug information.
+   *
+   * @param debugs - The debug information to initialize.
+   */
+  private _initializeDebugs(debugs?: Debugs): void {
+    if (debugs) {
+      for (const [key, value] of Object.entries(debugs)) {
+        this._debugs.set(key, value);
+      }
+    }
+  }
 
   /**
    * Returns the original error associated with this error.
@@ -53,8 +51,6 @@ export class BaseError extends Error {
   get originalError(): BaseError | Error | undefined {
     return this._originalError;
   }
-
-  protected _id?: string;
 
   /**
    * Retrieves the error id
@@ -91,55 +87,50 @@ export class BaseError extends Error {
    * @returns The debugs object with the retrieved debug information.
    */
   getDebugsObject(options: GetDebugOptions = {}): Debugs {
-    options = Object.assign(this.defaultGetDebugOptions(), options);
-
+    const mergedOptions = { ...this.defaultGetDebugOptions(), ...options };
     let debugs: Debugs = {};
-    if (options.id) {
+
+    if (mergedOptions.id) {
       debugs.errorId = this._id || "no_id";
     }
 
-    debugs = Object.assign(debugs, Object.fromEntries(this._debugs));
+    debugs = { ...debugs, ...Object.fromEntries(this._debugs) };
 
-    if (options.stack) {
-      debugs = Object.assign(debugs, this.getStack(options.stackFormat));
+    if (mergedOptions.stack) {
+      debugs = { ...debugs, ...this.getStack(mergedOptions.stackFormat) };
     }
 
     if (this._originalError) {
-      if (this._originalError instanceof BaseError) {
-        debugs.originalError = this._originalError.fullMessage();
-        if (options.originalErrorDebugs !== false) {
-          const originalOptions
-            = typeof options.originalErrorDebugs === "object"
-              ? options.originalErrorDebugs
-              : options;
+      debugs = { ...debugs, ...this._getOriginalErrorDebugs(mergedOptions) };
+    }
 
-          for (const [key, value] of Object.entries(
-            this._originalError.getDebugsObject(originalOptions),
-          )) {
-            debugs[`originalError - ${key}`] = value;
-          }
-        }
-        else {
-          if (options.originalErrorStack) {
-            for (const [key, value] of Object.entries(
-              this._originalError.getStack(options.stackFormat),
-            )) {
-              debugs[`originalError - ${key}`] = value;
-            }
-          }
-        }
+    return debugs;
+  }
+
+  /**
+   * Retrieves debug information from the original error.
+   *
+   * @param options - The options for retrieving original error debugs.
+   * @returns The debugs object with original error information.
+   */
+  private _getOriginalErrorDebugs(options: GetDebugOptions): Debugs {
+    let debugs: Debugs = {};
+
+    if (this._originalError instanceof BaseError) {
+      debugs.originalError = this._originalError.fullMessage();
+      const originalOptions = typeof options.originalErrorDebugs === "object" ? options.originalErrorDebugs : options;
+
+      if (options.originalErrorDebugs !== false) {
+        debugs = { ...debugs, ...this._prefixDebugKeys(this._originalError.getDebugsObject(originalOptions), "originalError") };
       }
-      else {
-        debugs.originalError
-          = `${this._originalError.name}: ${this._originalError}`;
-
-        if (options.originalErrorStack && this._originalError.stack) {
-          for (const [key, value] of Object.entries(
-            this.getStack(options.stackFormat, this._originalError.stack),
-          )) {
-            debugs[`originalError - ${key}`] = value;
-          }
-        }
+      else if (options.originalErrorStack) {
+        debugs = { ...debugs, ...this._prefixDebugKeys(this._originalError.getStack(options.stackFormat), "originalError") };
+      }
+    }
+    else {
+      debugs.originalError = `${this._originalError?.name}: ${this._originalError}`;
+      if (options.originalErrorStack && this._originalError?.stack) {
+        debugs = { ...debugs, ...this._prefixDebugKeys(this.getStack(options.stackFormat, this._originalError.stack), "originalError") };
       }
     }
 
@@ -147,10 +138,25 @@ export class BaseError extends Error {
   }
 
   /**
+   * Prefixes keys in a debug object with a given prefix.
+   *
+   * @param debugs - The debug object to prefix.
+   * @param prefix - The prefix to add to each key.
+   * @returns The debug object with prefixed keys.
+   */
+  private _prefixDebugKeys(debugs: Debugs, prefix: string): Debugs {
+    const prefixedDebugs: Debugs = {};
+    for (const [key, value] of Object.entries(debugs)) {
+      prefixedDebugs[`${prefix} - ${key}`] = value;
+    }
+    return prefixedDebugs;
+  }
+
+  /**
    * Returns a string representation of the debug information for the current object.
    *
    * @param options - Optional configuration object for fetching specific debug information.
-   * @returns An object containing stringifies debug information.
+   * @returns An object containing stringified debug information.
    */
   getDebugString(options: GetDebugOptions = {}): DebugStringObject {
     const debugs = this.getDebugsObject(options);
@@ -171,31 +177,19 @@ export class BaseError extends Error {
    *
    * @returns The stack information in the defined format.
    */
-  getStack(
-    stackFormat: StackFormat = "split",
-    stacks?: string,
-  ): DebugStringObject {
-    if (!stacks) {
-      stacks = this.stack;
-    }
-
-    if (!stacks) {
+  getStack(stackFormat: StackFormat = "split", stacks?: string): DebugStringObject {
+    stacks = stacks || this.stack;
+    if (!stacks)
       return {};
-    }
 
     if (stackFormat === "default") {
-      return {
-        stack: stacks,
-      };
+      return { stack: stacks };
     }
 
-    const stackObj: DebugStringObject = {};
-    let i: number = 1;
-    for (const stack of stacks.split("\n").slice(1)) {
-      stackObj[`stack${i}`] = stack.trim();
-      i++;
-    }
-    return stackObj;
+    return stacks.split("\n").slice(1).reduce((acc, stack, index) => {
+      acc[`stack${index + 1}`] = stack.trim();
+      return acc;
+    }, {} as DebugStringObject);
   }
 
   /**
