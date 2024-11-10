@@ -1,97 +1,96 @@
 import type { BaseError } from "./base_error";
 
 /**
- * Represents a collection of debug values
+ * A collection of debug values.
  */
-export type Debugs = { [key: string]: unknown };
+export type Debugs = Record<string, unknown>;
 
 /**
- * Represents a debug object with value in string
+ * A debug object with string values.
  */
-export type DebugStringObject = { [key: string]: string };
+export type DebugStringObject = Record<string, string>;
 
 /**
- * Represents the options for creating an error.
+ * Options for creating an error.
  */
 export type ErrorOptions = {
   /**
-   * Represents the message of the error
+   * The error message.
    */
   message: string;
+
   /**
-   * for set a custom name of the error
-   * @defaultValue baseError
+   * Custom name for the error.
+   * @defaultValue "baseError"
    */
   name?: string;
 
   /**
-   * Represents the original error associated with an error.
+   * The original error associated with this error.
    */
   originalError?: BaseError | Error;
+
   /**
-   * Represents the debugging information for the error
+   * Debugging information for the error.
    */
   debugs?: Debugs;
 
   /**
-   * if an uuid v4 id need to be generated auto (ignored if customId given)
+   * Automatically generate a UUID v4 ID (ignored if customId is provided).
    * @defaultValue false
    */
   autoGenerateId?: boolean;
+
   /**
-   * set a custom id for the error
+   * Custom ID for the error.
    */
   customId?: string;
 };
 
 /**
- * Options for customise getDebugs output
+ * Options to customize the output of getDebugs.
  */
 export type GetDebugOptions = {
   /**
-   * If add the id in the debug object
-   *
+   * Include the ID in the debug object.
    * @defaultValue true
    */
   id?: boolean;
 
   /**
-   * If add the debugs if exist from originals errors in the debug object
-   *
+   * Include debugs from original errors in the debug object.
    * @defaultValue true
    */
   originalErrorDebugs?: boolean | GetDebugOptions;
 
   /**
-   * If add the stack in the debug
-   *
+   * Include the stack trace in the debug.
    * @defaultValue true
    * @see {GetDebugOptions.stackFormat}
    */
   stack?: boolean;
 
   /**
-   * The format of the stack output
+   * Format of the stack output.
    *
+   * - `default`: A single string.
+   * - `split`: An array of strings, each representing a line of the stack trace.
    *
-   * _default - Without cut into one key "stack"_
-   *
-   * _split - format the stack, with remove the first line and count lines, with a new key-value for each line_
-   * @defaultValue split
+   * @defaultValue "split"
    */
   stackFormat?: StackFormat;
 
   /**
-   * if add stack of original error (work with Error and BaseError extends)
+   * Include the stack trace of the original error (works with Error and BaseError).
    * @defaultValue true
    */
   originalErrorStack?: boolean;
 };
 
 /**
- * The format of output for stack
+ * Format options for stack output.
  *
- * `default` -> a single string
- * `split` -> an array of string for each line of the stack
+ * - `default`: A single string.
+ * - `split`: An array of strings, each representing a line of the stack trace.
  */
 export type StackFormat = "default" | "split";
