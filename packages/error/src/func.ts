@@ -39,3 +39,41 @@ export async function forceSafe<T>(fn: (...args: unknown[]) => T | Promise<T>): 
     return error(anyToError(e));
   }
 }
+
+/**
+ * A function that handles multiple `Result` values of different types.
+ * If all results are successful, returns the success value of the last result.
+ * If any result is an error, the first encountered error is returned.
+ *
+ * @param results - A list of `Result`s which can have different types for success and errors.
+ * @returns A `Result` containing the last success or the first error.
+ *
+ * The success result type is inferred as the success type of the last argument.
+ * The error result type is unified across all arguments.
+ */
+export function multiple<
+  TLastSuccess,
+  TLastError extends Error,
+  TErrors extends Error[], // Tuple of all possible error types
+>(
+  ...results: [
+    ...{ [K in keyof TErrors]: Result<unknown, TErrors[K]> },
+    Result<TLastSuccess, TLastError>,
+  ]
+): Result<TLastSuccess, TErrors[number] | TLastError> {
+  for (const result of results) {
+    const [, err] = result;
+    if (err !== null) {
+      return error(err);
+    }
+  }
+
+  // If no errors, return last successful value
+  const [lastValue, lastErr] = results[results.length - 1];
+
+  if (lastErr !== null) {
+    return error(lastErr);
+  }
+
+  return ok(lastValue as TLastSuccess);
+}
