@@ -1,4 +1,4 @@
-import { error, forceSafe, ok } from "../src/lib/func";
+import { error, forceSafe, ok } from "../src";
 
 describe("result functions", () => {
   describe("ok function", () => {

@@ -1,4 +1,4 @@
-import { anyToError } from "../src/lib/util";
+import { anyToError } from "../src";
 
 describe("anyToError function", () => {
   it("should return the same Error object if input is an Error", () => {

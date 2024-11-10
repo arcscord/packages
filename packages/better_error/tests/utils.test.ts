@@ -1,4 +1,4 @@
-import { stringifyUnknown } from "../src/lib/util";
+import { stringifyUnknown } from "../src";
 
 describe("stringifyUnknown", () => {
   it("should return 'null' for null value", () => {

@@ -1,4 +1,4 @@
-import { BaseError } from "../src/lib/base_error";
+import { BaseError } from "../src";
 
 describe("baseError", () => {
   it("should create an error with a message", () => {
