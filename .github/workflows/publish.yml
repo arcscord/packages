@@ -36,4 +36,4 @@ jobs:
       - name: Publish
         run: npm run publish --provenance --access public
         env:
-          NODE_AUTH_TOKEN: ${{NPM_SECRET}}
+          NODE_AUTH_TOKEN: ${{secrets.NPM_SECRET}}
