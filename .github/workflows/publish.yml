@@ -34,6 +34,7 @@ jobs:
       - name: Build code
         run: pnpm build
       - name: Publish
-        run: npm run publish --provenance --access public
+        run: npm publish --provenance --access public
+        working-directory: "packages/${{inputs.package}}"
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_SECRET}}
