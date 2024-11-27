@@ -30,3 +30,4 @@ coverage/
 
 # Ignore package locks
 package-lock.json
+.DS_Store
