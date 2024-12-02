@@ -14,7 +14,7 @@ function foo(num: number): Result<boolean, Error> {
   return ok(num % 2 === 0);
 }
 
-const [isFoo, err] = foo(3);
+const [err, isFoo] = foo(3);
 if (err) {
   console.error(err);
 }
