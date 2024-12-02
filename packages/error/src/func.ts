@@ -9,7 +9,7 @@ import { anyToError } from "./util";
  * @template T - The type of value to be wrapped.
  */
 export function ok<T>(value: T): ResultOk<T> {
-  return [value, null];
+  return [null, value];
 }
 
 /**
@@ -20,7 +20,7 @@ export function ok<T>(value: T): ResultOk<T> {
  * @template E - The type of the error.
  */
 export function error<E extends Error>(err: E): ResultErr<E> {
-  return [null, err];
+  return [err, null];
 }
 
 /**
@@ -62,14 +62,14 @@ export function multiple<
   ]
 ): Result<TLastSuccess, TErrors[number] | TLastError> {
   for (const result of results) {
-    const [, err] = result;
+    const [err] = result;
     if (err !== null) {
       return error(err);
     }
   }
 
   // If no errors, return last successful value
-  const [lastValue, lastErr] = results[results.length - 1];
+  const [lastErr, lastValue] = results[results.length - 1];
 
   if (lastErr !== null) {
     return error(lastErr);

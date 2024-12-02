@@ -11,11 +11,11 @@ export type Result<T, E> = ResultOk<T> | ResultErr<E>;
  *
  * @template T - The type of the successful value.
  */
-export type ResultOk<T> = [value: T, error: null];
+export type ResultOk<T> = [error: null, value: T];
 
 /**
  * A type representing a result that contains an error.
  *
  * @template E - The type of the error.
  */
-export type ResultErr<E> = [value: null, error: E];
+export type ResultErr<E> = [error: E, value: null];
